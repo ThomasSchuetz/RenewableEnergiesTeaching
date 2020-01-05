@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Renewable Energies Teaching - Wind power</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="wind_power.js"></script>
+        <script type="text/javascript" src="data/wind_speed_offshore.js"></script> <!-- For importing wind_speed_offshore data -->
+        <script type="text/javascript" src="data/wind_speed_onshore.js"></script> <!-- For importing wind_speed_onshore data -->
+        <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+
+        <script>
+            function calculateSpeed() {
+                let height_measurement = 10;
+                let height_calculation = Number(document.getElementById("height_calculation").value);
+                let roughness_length = Number(document.getElementById("roughness_length").value);
+                
+                var transfomed_wind_speed_onshore = transform_profile_to_height(wind_speed_onshore, height_measurement, height_calculation, roughness_length);
+                var transfomed_wind_speed_offshore = transform_profile_to_height(wind_speed_offshore, height_measurement, height_calculation, roughness_length);
+
+                const div_plot_wind_speeds = "wind_speed_defined_height";
+                plot_wind_speed(transfomed_wind_speed_onshore, transfomed_wind_speed_offshore, div_plot_wind_speeds);
+                document.getElementById(div_plot_wind_speeds).style.display = "block";
+            }
+            
+            function define_trace(values, trace_name)
+            {
+                return {y: values,
+                    mode: 'lines',
+                    type: 'scatter',
+                    name: trace_name,
+                    };
+            }
+
+            function plot_wind_speed(velocity_onshore, velocity_offshore, div_for_display)
+            {
+                var trace_onshore = define_trace(velocity_onshore, "Onshore");
+                var trace_offshore = define_trace(velocity_offshore, "Offshore");
+                var data = [trace_onshore, trace_offshore];
+
+                let layout = {
+                    xaxis: {title: "Time of year (h)"},
+                    yaxis: {title: "Wind speed (m/s)"},
+                }
+
+                let figure = {data: data, layout: layout};
+
+                Plotly.newPlot(div_for_display, figure);
+            }
+
+            window.onload = function() {
+                $('#explanations').load('explanations.html');
+                $('#roughness_lengths').load('roughness_lengths.html');
+
+                plot_wind_speed(wind_speed_onshore, wind_speed_offshore, 'wind_speed_10meters');
+            };
+            
+        </script>
+    </head>
+    <body>
+        <div class="container">
+            <ul class="nav nav-pills">
+              <li class="active"><a data-toggle="pill" href="#overview">Overview</a></li>
+              <li><a data-toggle="pill" href="#wind_turbine">Wind turbine</a></li>
+              <li><a data-toggle="pill" href="#location">Location</a></li>
+              <li><a data-toggle="pill" href="#explanations">Explanations</a></li>
+            </ul>
+            
+            <div class="tab-content">
+              <div id="overview" class="tab-pane active">
+              </div>
+              <div id="wind_turbine" class="tab-pane">
+              </div>
+              <div id="location" class="tab-pane">
+                <p>Two datasets are provided in this website. One for an off-shore location and another one for an onshore location.</p>
+                <p>The plot below displays the wind speed of each location on 10 meters above ground level.</p>
+                <div id="wind_speed_10meters"></div>
+                <p>You can transform this data to a wind speed at any given height and roughness length:</p>
+                <table>
+                    <thead>
+                        <th>Height</th>
+                        <th>Roughness length</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="height_calculation" value="100" /></td>
+                            <td><input type="number" id="roughness_length" value="0.1" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <button onclick="calculateSpeed();">Calculate speed</button>
+
+                <div id="wind_speed_defined_height" style="display: none;"></div>
+
+                <div id="roughness_lengths"></div>
+
+                
+              </div>
+              <div id="explanations" class="tab-pane">
+              </div>
+            </div>
+          </div>
+    </body>
+</html>
